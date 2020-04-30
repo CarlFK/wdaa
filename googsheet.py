@@ -18,15 +18,15 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
-try:
-    from api_keys import sheets
-except ModuleNotFoundError:
-    # you can't ahve my secrets, but here is a start
-
-
-    sheets = {'test': {
+sheets = {
+    'sample': {
         'ssid':  '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
         'cells': 'Class Data!A2:E'
+            },
+    'idph': {
+        # 'ssid':  '1uJ5r1qlXl5YLXvMHREDKtsfULy-P3xfU',
+        'ssid':  '12inQ_P2xrEevzu5rbBANSRpekvZX3bASekP8AfNOWDI',
+        'cells': 'A1:I208'
             }
         }
 
@@ -52,7 +52,7 @@ def v_to_ld(values):
 
         # print("keys: {}".format(keys))
         rows=[]
-        rowno = 1
+        rowno = 2
         for row in values[1:]:
 
             #pad empty cells
@@ -98,7 +98,10 @@ def goog_sheet(spreadsheetId, range_name='A1:ZZ99999'):
                                 range=range_name).execute()
     values = result.get('values', [])
 
-    return values
+    rows = v_to_ld(values)
+
+    return rows
+
 
 def goog_sheet_old(spreadsheetId, range_name='A1:ZZ99999'):
 
@@ -144,60 +147,31 @@ def csv_sheet(filename):
 
     return rows
 
-def what_am_i(rows):
+def sample():
 
-    def one(row):
-
-        query = urllib.parse.quote(
-            '{Medical Center Name} "{Region}"'.format(**row))
-        goog = "https://google.com/#q={}".format(query)
-
-        query = urllib.parse.quote(
-            "{Medical Center Name}".format(**row))
-        wp = "https://en.wikipedia.org/wiki/Special:Search?search={}".format(query)
-
-
-        # print("{Medical Center Name} -- {Address}".format(**row))
-        print("[{Region}] {Medical Center Name}\n{goog}\n{wp}\n".format(
-            goog=goog, wp=wp, **row))
-
-
-    print()
-    for row in rows:
-        if "Hospital" in row['Medical Center Name']:
-            continue
-        if "Chicago" == row['Region']:
-            continue
-        # one(row)
-
-    print()
-    for row in rows:
-        if "Hospital" in row['Medical Center Name']:
-            continue
-        if "Chicago" != row['Region']:
-            continue
-        # one(row)
-
-    print()
-    for row in rows:
-        if "Hospital" not in row['Medical Center Name']:
-            continue
-        one(row)
-
-def test(creds_id):
-
-    sheet = sheets[creds_id]
+    sheet = sheets['sample']
     ssid = sheet['ssid']
     cells = sheet['cells']
+    rows = goog_sheet(ssid, cells)
+    for row in rows:
+        print(row)
 
-    values = goog_sheet(ssid, cells)
-    rows = v_to_ld(values)
-    pprint(rows)
-    what_am_i(rows)
+
+def idph():
+
+    sheet = sheets['idph']
+    ssid = sheet['ssid']
+    cells = sheet['cells']
+    rows = goog_sheet(ssid, cells)
+    for row in rows:
+        print(row['Hospital'])
+
+def test():
+    sample()
+    idph()
 
 def main():
-    # test('test')
-    test('ray-copy')
+    test()
 
 if __name__ == '__main__':
     main()
