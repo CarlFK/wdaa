@@ -3,12 +3,16 @@
 # adds things with addresses, tries to avoid dupes based on lat/lng
 
 import re
+import urllib.parse
 
 from pprint import pprint
 from time import sleep
 
 import geocoder
-from googsheet import goog_sheet
+
+import gspread
+
+from googsheet import goog_sheet, v_to_ld
 
 
 try:
@@ -60,6 +64,41 @@ def all_addrs_to_ll( rows ):
         print(latlng)
 
 
+def c19it():
+
+    # gc = gspread.service_account()
+    gc = gspread.oauth()
+
+    sh = gc.open("Copy of COVID-19 INVENTORY TRACKER - CHICAGO")
+
+    worksheet = sh.worksheet("Requesters")
+
+    # ['Medical Center Name', 'Email Address', '', 'Region', 'Primary Contact', 'Address', 'fixed address', 'lat', 'lng', 'homepage url', 'location url', 'wikipedia url', 'Phone', 'Product Needs', 'Immediate Need - ready for order', 'How to get it to them']
+
+    # keys = worksheet.get('A2:R2')[0]
+    # cell.row, cell.col
+    values = worksheet.get_all_values()
+
+    # lists of dicts
+    rows = v_to_ld(values, 1)
+
+    for row in rows:
+        if row['lng']:
+            continue
+
+        if row['Address'] is None or len(row['Address']) == 0:
+            continue
+
+        if row['fixed address']:
+            addr = row['fixed address']
+        else:
+            addr = addr_fixer( row['Address'] )
+
+        latlng = addr_to_latlng( addr )
+
+        worksheet.update('H{row}:I{row}'.format(**row), [latlng])
+
+
 def ilppe():
 
     sheet = sheets['ilppe']
@@ -76,7 +115,7 @@ def ilppe():
 
 def demo_addr():
     # addr = '1620 W. Harrison St. Chicago, IL 60612'
-    addr = "2070 N, IL-50, Suite 500, Bourbonnais, IL 60914"
+    # no find: "2070 N, IL-50, Suite 500, Bourbonnais, IL 60914"
     addr = "2070 N, IL-50, Bourbonnais, IL 60914"
     ll = addr_to_latlng(addr)
     print(ll)
@@ -103,9 +142,12 @@ def what_am_i(rows):
     for row in rows:
         if "Hospital" in row['Medical Center Name']:
             continue
-        if "Chicago" == row['Region']:
+        if "Chicago" != row['Region']:
             continue
         # one(row)
+        if "Chicago" in row['Address']:
+            continue
+        one(row)
 
     print()
     for row in rows:
@@ -119,7 +161,7 @@ def what_am_i(rows):
     for row in rows:
         if "Hospital" not in row['Medical Center Name']:
             continue
-        one(row)
+        # one(row)
 
 
 def ray():
@@ -134,10 +176,13 @@ def ray():
 
 def test():
 
-    demo_addr()
+    # demo_addr()
     rows = ilppe()
-    all_addrs_to_ll( rows )
+    what_am_i(rows)
+    # all_addrs_to_ll( rows )
     # ray()
+
+    # c19it()
 
 
 def main():

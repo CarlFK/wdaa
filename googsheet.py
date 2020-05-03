@@ -3,7 +3,6 @@
 
 import pickle
 import os.path
-import urllib.parse
 
 from httplib2 import Http
 from pprint import pprint
@@ -32,9 +31,12 @@ sheets = {
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 
-def v_to_ld(values):
+def v_to_ld(values, offset=0):
     # values to List of Dicts
     # first row are key names, rest is data
+
+    # get rid of extra headers:
+    values = values[offset:]
 
     if not values:
         print('No data found.')
@@ -52,7 +54,7 @@ def v_to_ld(values):
 
         # print("keys: {}".format(keys))
         rows=[]
-        rowno = 2
+        rowno = offset + 2
         for row in values[1:]:
 
             #pad empty cells
@@ -137,16 +139,6 @@ https://developers.google.com/resources/api-libraries/documentation/sheets/v4/py
     return values
 
 
-def csv_sheet(filename):
-    # read from csv (likely exported from a spreadsheet)
-    # first row are field names
-    # return dict of rows
-
-    with open(filename, newline='') as csvfile:
-        rows = list(csv.DictReader(csvfile))
-
-    return rows
-
 def sample():
 
     sheet = sheets['sample']
@@ -155,7 +147,6 @@ def sample():
     rows = goog_sheet(ssid, cells)
     for row in rows:
         print(row)
-
 
 def idph():
 

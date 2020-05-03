@@ -1,7 +1,7 @@
 # wd.py
-
 # WikiData things
 
+import csv
 from pprint import pprint
 
 from qwikidata.entity import WikidataItem, WikidataLexeme, WikidataProperty
@@ -42,33 +42,48 @@ SELECT ?item ?itemLabel ?itemDescription WHERE {{
             description=item['itemDescription']['value'],
             uri=item['item']['value']))
 
-    # print("import sys; sys.exit()"); import code; code.interact(local=locals())
 
 
 def tag_qs():
     tags = """
-Hospital
-psychiatric hospital
-rehabilitation hospital
-Urgent care
-Nursing homes
 Doctor office
 Dentist office
-fire station
-EMT
-Food pantries
+Food pantry
 Post office
 """
+
+    with open("tags.csv") as csvfile:
+        rows = list(csv.DictReader(csvfile))
+
+    d = {}
+    for row in rows:
+        d[row['label']] = row
+
+    for k in d:
+        print("{label}: {description} https://www.wikidata.org/wiki/{id}\n".format(**d[k]))
 
     for tag in tags.split('\n'):
         if not tag:
             continue
+        if tag in d:
+            continue
+
         print(tag)
-        q(tag)
+        # q(tag)
+
+def test():
+    # random bits of code to test other bits of code.
+
+    # q("Hospital")
+    # q("Urgent Care Clinic")
+    # q("Nursing Home")
+    tag_qs()
+
+    # print("import sys; sys.exit()"); import code; code.interact(local=locals())
+
 
 def main():
-    # q("Hospital")
-    tag_qs()
+    test()
 
 if __name__ == '__main__':
     main()
