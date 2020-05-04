@@ -10,7 +10,37 @@ from qwikidata.linked_data_interface import get_entity_dict_from_api
 from qwikidata.sparql import (get_subclasses_of_item,
                               return_sparql_query_results)
 
-# SELECT ?item WHERE { ?item rdfs:label "hospital"@en. }
+
+def hospi_ll(lat,lng):
+
+    sparql_query = """
+    SELECT ?place ?placeLabel ?geo WHERE {{
+  ?place wdt:P31/wdt:P279* wd:Q16917;  # Hospitals
+         wdt:P17 wd:Q30;            # In US
+ SERVICE wikibase:around {{
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:center"Point({lng} {lat})"^^geo:wktLiteral.
+      bd:serviceParam wikibase:radius ".5" .
+      bd:serviceParam wikibase:distance ?distance .
+    }}
+ SERVICE wikibase:label {{
+ bd:serviceParam wikibase:language "en" .
+ }}
+}}""".format(lat=lat,lng=lng)
+
+    res = return_sparql_query_results(sparql_query)
+
+    # pprint(res['results']['bindings'])
+
+    for row in res['results']['bindings']:
+        print(row['place']['value'])
+        print(row['placeLabel']['value'])
+        print()
+
+    return res
+
+    print("import sys; sys.exit()"); import code; code.interact(local=locals())
+
 
 def q(word):
 
@@ -41,7 +71,6 @@ SELECT ?item ?itemLabel ?itemDescription WHERE {{
             label=item['itemLabel']['value'],
             description=item['itemDescription']['value'],
             uri=item['item']['value']))
-
 
 
 def tag_qs():
@@ -77,7 +106,10 @@ def test():
     # q("Hospital")
     # q("Urgent Care Clinic")
     # q("Nursing Home")
-    tag_qs()
+    # tag_qs()
+
+    # hospi_ll(41.89498135,-87.62153624)
+    hospi_ll(41.79027035,-87.60458343)
 
     # print("import sys; sys.exit()"); import code; code.interact(local=locals())
 

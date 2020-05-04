@@ -14,6 +14,7 @@ import gspread
 
 from googsheet import goog_sheet, v_to_ld
 
+from wd import hospi_ll
 
 try:
     from api_keys import sheets
@@ -125,6 +126,8 @@ def what_am_i(rows):
 
     def one(row):
 
+        pprint(row)
+
         query = urllib.parse.quote(
             '{Medical Center Name} "{Region}"'.format(**row))
         goog = "https://google.com/#q={}".format(query)
@@ -133,9 +136,14 @@ def what_am_i(rows):
             "{Medical Center Name}".format(**row))
         wp = "https://en.wikipedia.org/wiki/Special:Search?search={}".format(query)
 
+        res = hospi_ll(row['lat'], row['lng'])
 
         print("[{Region}] {Medical Center Name}\n{goog}\n{wp}\n".format(
             goog=goog, wp=wp, **row))
+
+        for wd in res['results']['bindings']:
+            if row['Medical Center Name'] == wd['placeLabel']['value']:
+                print("hit: " + wd['place']['value'])
 
 
     print()
@@ -147,7 +155,7 @@ def what_am_i(rows):
         # one(row)
         if "Chicago" in row['Address']:
             continue
-        one(row)
+        # one(row)
 
     print()
     for row in rows:
@@ -161,7 +169,12 @@ def what_am_i(rows):
     for row in rows:
         if "Hospital" not in row['Medical Center Name']:
             continue
-        # one(row)
+        if "Chicago" != row['Region']:
+            continue
+        if row['wikidata']:
+            continue
+        one(row)
+        break
 
 
 def ray():
@@ -176,13 +189,14 @@ def ray():
 
 def test():
 
+    # c19it()
+
     # demo_addr()
     rows = ilppe()
     what_am_i(rows)
     # all_addrs_to_ll( rows )
     # ray()
 
-    # c19it()
 
 
 def main():
