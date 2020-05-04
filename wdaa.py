@@ -12,7 +12,7 @@ import geocoder
 
 import gspread
 
-from googsheet import goog_sheet, v_to_ld
+from googsheet import v_to_ld
 
 from wd import hospi_ll
 
@@ -102,14 +102,25 @@ def c19it():
 
 def ilppe():
 
-    sheet = sheets['ilppe']
-    ssid = sheet['ssid']
-    cells = sheet['cells']
-    rows = goog_sheet(ssid, cells)
-    # print(rows[0].keys())
+    gc = gspread.oauth()
+    sh = gc.open("Copy of COVID-19 INVENTORY TRACKER - CHICAGO")
+    worksheet = sh.worksheet("Requesters")
+    values = worksheet.get_all_values()
+    rows = v_to_ld(values, 1)
 
-    row = rows[0]
-    # pprint(row)
+    # return rows
+
+    what_am_i(rows)
+
+def chg():
+
+    gc = gspread.oauth()
+    sh = gc.open("Chicago Hospitals_Geocoded")
+    worksheet = sh.worksheet("Sheet1")
+    values = worksheet.get_all_values()
+    rows = v_to_ld(values, 0)
+
+    import code; code.interact(local=locals())
 
     return rows
 
@@ -163,7 +174,10 @@ def what_am_i(rows):
             continue
         if "Chicago" != row['Region']:
             continue
-        # one(row)
+        if row['wikidata'] or row['isa']:
+            continue
+        one(row)
+        break
 
     print()
     for row in rows:
@@ -171,20 +185,10 @@ def what_am_i(rows):
             continue
         if "Chicago" != row['Region']:
             continue
-        if row['wikidata']:
+        if row['wikidata'] or row['isa']:
             continue
-        one(row)
+        # one(row)
         break
-
-
-def ray():
-
-    sheet = sheets['ray-copy']
-    ssid = sheet['ssid']
-    cells = sheet['cells']
-    rows = goog_sheet(ssid, cells)
-    for row in rows:
-        print(row['Medical Center Name'])
 
 
 def test():
@@ -192,11 +196,10 @@ def test():
     # c19it()
 
     # demo_addr()
-    rows = ilppe()
-    what_am_i(rows)
     # all_addrs_to_ll( rows )
-    # ray()
 
+    # rows = ilppe()
+    rows = chg()
 
 
 def main():
