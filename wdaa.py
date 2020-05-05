@@ -147,7 +147,7 @@ def what_am_i(rows):
             "{Medical Center Name}".format(**row))
         wp = "https://en.wikipedia.org/wiki/Special:Search?search={}".format(query)
 
-        res = hospi_ll(row['lat'], row['lng'])
+        res = hospi_ll(row['lat'], row['lng'], .1, "Q16917" ) # hospital
 
         print("[{Region}] {Medical Center Name}\n{goog}\n{wp}\n".format(
             goog=goog, wp=wp, **row))

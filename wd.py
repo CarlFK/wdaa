@@ -11,22 +11,27 @@ from qwikidata.sparql import (get_subclasses_of_item,
                               return_sparql_query_results)
 
 
-def hospi_ll(lat,lng):
+def hospi_ll( lat, lng, radius=.5, isa=""):
+
+    if isa:
+        isa = "wdt:P31/wdt:P279* wd:{};".format(isa)
 
     sparql_query = """
     SELECT ?place ?placeLabel ?geo WHERE {{
-  ?place wdt:P31/wdt:P279* wd:Q16917;  # Hospitals
+  ?place {isa}
          wdt:P17 wd:Q30;            # In US
  SERVICE wikibase:around {{
       ?place wdt:P625 ?location .
       bd:serviceParam wikibase:center"Point({lng} {lat})"^^geo:wktLiteral.
-      bd:serviceParam wikibase:radius ".5" .
+      bd:serviceParam wikibase:radius "{radius}" .
       bd:serviceParam wikibase:distance ?distance .
     }}
  SERVICE wikibase:label {{
  bd:serviceParam wikibase:language "en" .
  }}
-}}""".format(lat=lat,lng=lng)
+}}""".format(lat=lat,lng=lng, radius=radius, isa=isa)
+
+    print(sparql_query)
 
     res = return_sparql_query_results(sparql_query)
 
@@ -109,7 +114,7 @@ def test():
     # tag_qs()
 
     # hospi_ll(41.89498135,-87.62153624)
-    hospi_ll(41.79027035,-87.60458343)
+    hospi_ll( 41.79027035, -87.60458343, .1, "Q16917" ) # hospital)
 
     # print("import sys; sys.exit()"); import code; code.interact(local=locals())
 
