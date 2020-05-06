@@ -1,0 +1,16 @@
+id,label,description
+Q16917,hospital,"health care facility (for organizations use  medical organization (Q4287745),for individual buildings use Q39364723)"
+Q210999,psychiatric hospital,"hospitals or wards specializing in the treatment of serious mental disorders"
+Q7309759,rehabilitation hospital,hospital for long-term recovery after acute medical conditions have been treated
+Q7900484,urgent care clinic,type of medical clinic
+Q837142,nursing home,type of residential care
+Q27349,dentist,healthcare occupation
+Q1195942,fire station,structure or other area set aside for storage of firefighting apparatus
+Q285852,volunteer fire department,fire department composed of volunteers
+Q1497094,emergency medical technician,healthcare provider
+Q772298,homeless shelter,temporary residence for homeless individuals and families
+Q569500,community health center,clinic, staffed by a group of general practitioners and nurses providing healthcare services to people in a certain area
+Q718966,doctor's office,general medical practice
+Q608152,hospice,organization that cares for the dying or the incurably ill
+Q5500205,free clinic,health care facility offering services to economically disadvantaged individuals for free or at a nominal cost
+Q44613,monastery,complex of buildings comprising the domestic quarters and workplace(s) of monks or nuns
