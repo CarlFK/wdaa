@@ -17,7 +17,7 @@ def hospi_ll( lat, lng, radius=.5, isa=""):
         isa = "wdt:P31/wdt:P279* wd:{};".format(isa)
 
     sparql_query = """
-    SELECT ?place ?placeLabel ?geo WHERE {{
+SELECT ?place ?placeLabel ?distance WHERE {{
   ?place {isa}
          wdt:P17 wd:Q30;            # In US
  SERVICE wikibase:around {{
@@ -29,19 +29,15 @@ def hospi_ll( lat, lng, radius=.5, isa=""):
  SERVICE wikibase:label {{
  bd:serviceParam wikibase:language "en" .
  }}
-}}""".format(lat=lat,lng=lng, radius=radius, isa=isa)
+}}
+ORDER BY ?distance
+LIMIT 10""".format(lat=lat,lng=lng, radius=radius, isa=isa)
 
-    print(sparql_query)
+    # print(sparql_query)
 
     res = return_sparql_query_results(sparql_query)
 
     # pprint(res['results']['bindings'])
-
-    for row in res['results']['bindings']:
-        print(row['place']['value'])
-        print(row['placeLabel']['value'])
-        print()
-
     return res
 
     print("import sys; sys.exit()"); import code; code.interact(local=locals())
@@ -114,7 +110,13 @@ def test():
     # tag_qs()
 
     # hospi_ll(41.89498135,-87.62153624)
-    hospi_ll( 41.79027035, -87.60458343, .1, "Q16917" ) # hospital)
+    res = hospi_ll( 41.79027035, -87.60458343, .1, "Q16917" ) # hospital)
+
+    for row in res['results']['bindings']:
+        print(row['place']['value'])
+        print(row['placeLabel']['value'])
+        print()
+
 
     # print("import sys; sys.exit()"); import code; code.interact(local=locals())
 

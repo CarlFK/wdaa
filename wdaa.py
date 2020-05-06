@@ -14,7 +14,7 @@ import gspread
 
 from googsheet import v_to_ld
 
-from wd import hospi_ll
+from wd import q, hospi_ll
 
 try:
     from api_keys import sheets
@@ -108,11 +108,60 @@ def ilppe():
     values = worksheet.get_all_values()
     rows = v_to_ld(values, 1)
 
-    # return rows
-
     what_am_i(rows)
 
+    # return rows
+
+def db_hospis():
+
+    # get raw data
+    with open("db_hospis.txt") as f:
+        lines = []
+        for line in f:
+            line = line.strip()
+            if line:
+                lines.append(line)
+
+    for line in lines:
+        print(line)
+        res = q(line)
+        print("------------\n")
+
+
+
+def db():
+
+    # get raw data
+    with open("db.txt") as f:
+        lines = []
+        for line in f:
+            line = line.strip()
+            if line:
+                lines.append(line)
+
+    # dig out hositals
+    hospis=set()
+    for line in lines:
+        if "hosp" in line.lower():
+            hospis.update([line])
+
+        # words = line.split()
+        # print(words)
+        # for word in words:
+        #    if "hosp" in word.lower():
+        #        hospis.update(line)
+
+    # pprint(hospis)
+
+    for hospi in hospis:
+        print(hospi)
+
+
+    return lines
+
+
 def chg():
+    # "Chicago Hospitals_Geocoded"
 
     gc = gspread.oauth()
     sh = gc.open("Chicago Hospitals_Geocoded")
@@ -137,7 +186,8 @@ def what_am_i(rows):
 
     def one(row):
 
-        pprint(row)
+        # Item from spreadsheet
+        # pprint(row)
 
         query = urllib.parse.quote(
             '{Medical Center Name} "{Region}"'.format(**row))
@@ -147,48 +197,38 @@ def what_am_i(rows):
             "{Medical Center Name}".format(**row))
         wp = "https://en.wikipedia.org/wiki/Special:Search?search={}".format(query)
 
-        res = hospi_ll(row['lat'], row['lng'], .1, "Q16917" ) # hospital
-
-        print("[{Region}] {Medical Center Name}\n{goog}\n{wp}\n".format(
+        print("{row} {Medical Center Name}\n".format(
             goog=goog, wp=wp, **row))
 
+        """
+        print("[{Region}] {Medical Center Name}\n{goog}\n{wp}\n".format(
+            goog=goog, wp=wp, **row))
+        """
+
+        # Look for it in WikiData
+
+        isa = "Q16917" if row['isa'] == 'hospital' else ''
+        res = hospi_ll(row['lat'], row['lng'], .4, isa )
+
         for wd in res['results']['bindings']:
+            print( "{} {} {} {}".format(
+                wd['distance']['value'],
+                wd['placeLabel']['value'],
+                wd['place']['value'], wd['place']['value'].split('/')[-1]
+                ))
             if row['Medical Center Name'] == wd['placeLabel']['value']:
-                print("hit: " + wd['place']['value'])
-
-
-    print()
-    for row in rows:
-        if "Hospital" in row['Medical Center Name']:
-            continue
-        if "Chicago" != row['Region']:
-            continue
-        # one(row)
-        if "Chicago" in row['Address']:
-            continue
-        # one(row)
+                print("hit!")
+                import code; code.interact(local=locals())
+        print("----------\n")
 
     print()
-    for row in rows:
-        if "Hospital" in row['Medical Center Name']:
-            continue
-        if "Chicago" != row['Region']:
-            continue
-        if row['wikidata'] or row['isa']:
-            continue
-        one(row)
-        break
-
-    print()
-    for row in rows:
-        if "Hospital" not in row['Medical Center Name']:
-            continue
-        if "Chicago" != row['Region']:
-            continue
-        if row['wikidata'] or row['isa']:
-            continue
-        # one(row)
-        break
+    for row in rows[104:]:
+        # pprint(row)
+        if "Hospital" not in row['Medical Center Name'] and \
+            row['Region'] == "Chicago" and \
+            not row['wikidata'] and \
+            row['isa'] != 'hospital':
+                one(row)
 
 
 def test():
@@ -199,7 +239,8 @@ def test():
     # all_addrs_to_ll( rows )
 
     # rows = ilppe()
-    rows = chg()
+    # rows = chg()
+    db_hospis()
 
 
 def main():
