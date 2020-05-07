@@ -14,7 +14,7 @@ import gspread
 
 from googsheet import v_to_ld
 
-from wd import q, hospi_ll
+from wd import label, hospi_ll
 
 try:
     from api_keys import sheets
@@ -81,7 +81,7 @@ def c19it():
     values = worksheet.get_all_values()
 
     # lists of dicts
-    rows = v_to_ld(values, 1)
+    keys,rows = v_to_ld(values, 1)
 
     for row in rows:
         if row['lng']:
@@ -100,74 +100,80 @@ def c19it():
         worksheet.update('H{row}:I{row}'.format(**row), [latlng])
 
 
-def ilppe():
+def ilppe_get():
 
     gc = gspread.oauth()
     sh = gc.open("Copy of COVID-19 INVENTORY TRACKER - CHICAGO")
     worksheet = sh.worksheet("Requesters")
     values = worksheet.get_all_values()
-    rows = v_to_ld(values, 1)
+    keys,rows = v_to_ld(values, 1)
 
-    what_am_i(rows)
-
-    # return rows
+    return rows
 
 def db_hospis():
 
-    # get raw data
-    with open("db_hospis.txt") as f:
-        lines = []
-        for line in f:
-            line = line.strip()
-            if line:
-                lines.append(line)
+    gc = gspread.oauth()
+    sh = gc.open("d data")
+    worksheet = sh.worksheet("cooked")
+    values = worksheet.get_all_values()
+    keys,rows = v_to_ld(values, 0)
 
-    for line in lines:
-        print(line)
-        res = q(line)
-        print("------------\n")
+    ilppes = ilppe_get()
 
+    for row in rows:
 
+        if not row['wikidata'] and \
+                row['isa'] == 'hospital' and \
+                row['name'] not in [
+                    ilppe['Medical Center Name'] for ilppe in ilppes]:
 
-def db():
+            print(row['row'],row['name'])
 
-    # get raw data
-    with open("db.txt") as f:
-        lines = []
-        for line in f:
-            line = line.strip()
-            if line:
-                lines.append(line)
+            goog_q = urllib.parse.quote(row['name'])
+            print("https://google.com/#q={}".format(goog_q))
 
-    # dig out hositals
-    hospis=set()
-    for line in lines:
-        if "hosp" in line.lower():
-            hospis.update([line])
+            isa = "Q16917" if row['isa'] == 'hospital' else ''
+            res = label(row['name'], isa)
+            if len(res['results']['bindings']):
+                cell=worksheet.cell(row['row'], keys.index('wikidata'))
+                wd_id = res['results']['bindings'][0]['item']['value'].split('/')[-1]
+                print('worksheet.update( {}, "{}")'.format(
+                    cell.address,
+                    wd_id))
+            print("------------\n")
 
-        # words = line.split()
-        # print(words)
-        # for word in words:
-        #    if "hosp" in word.lower():
-        #        hospis.update(line)
+            import code; code.interact(local=locals())
 
-    # pprint(hospis)
+            break
 
-    for hospi in hospis:
-        print(hospi)
-
-
-    return lines
 
 
 def chg():
-    # "Chicago Hospitals_Geocoded"
+    sn = "Chicago Hospitals_Geocoded"
 
     gc = gspread.oauth()
-    sh = gc.open("Chicago Hospitals_Geocoded")
+    sh = gc.open(sn)
     worksheet = sh.worksheet("Sheet1")
     values = worksheet.get_all_values()
-    rows = v_to_ld(values, 0)
+    keys,rows = v_to_ld(values, 0)
+
+    for row in rows:
+        print("{FACILITY} - {StAddr} {City}\n".format(**row))
+        isas = ["Q16917", "Q4287745"]  # hospital,  medical organization
+        res = hospi_ll( row['Y'], row['X'], .2, isas=isas)
+
+        for wd in res['results']['bindings']:
+            if row['FACILITY'] == wd['placeLabel']['value']:
+                print( "match: ", wd['place']['value'] )
+                break
+            else:
+                print( wd['distance']['value'],
+                    wd['placeLabel']['value'],
+                    wd['place']['value'],
+                    # wd['place']['value'].split('/')[-1]
+                    )
+        print("----------")
+        # break
 
     import code; code.interact(local=locals())
 
@@ -200,15 +206,14 @@ def what_am_i(rows):
         print("{row} {Medical Center Name}\n".format(
             goog=goog, wp=wp, **row))
 
-        """
         print("[{Region}] {Medical Center Name}\n{goog}\n{wp}\n".format(
             goog=goog, wp=wp, **row))
-        """
 
         # Look for it in WikiData
 
+        # isa = "Q4287745" if row['isa'] == 'hospital' else ''
         isa = "Q16917" if row['isa'] == 'hospital' else ''
-        res = hospi_ll(row['lat'], row['lng'], .4, isa )
+        res = hospi_ll(row['lat'], row['lng'], .5, isa )
 
         for wd in res['results']['bindings']:
             print( "{} {} {} {}".format(
@@ -222,13 +227,14 @@ def what_am_i(rows):
         print("----------\n")
 
     print()
-    for row in rows[104:]:
+    for row in rows:
         # pprint(row)
-        if "Hospital" not in row['Medical Center Name'] and \
-            row['Region'] == "Chicago" and \
-            not row['wikidata'] and \
-            row['isa'] != 'hospital':
+        # if "Hospital" in row['Medical Center Name'] and \
+        #    row['Region'] == "Chicago" and \
+        if not row['wikidata'] and \
+            row['isa'] == 'hospital':
                 one(row)
+                break
 
 
 def test():
@@ -238,9 +244,12 @@ def test():
     # demo_addr()
     # all_addrs_to_ll( rows )
 
-    # rows = ilppe()
-    # rows = chg()
-    db_hospis()
+    # rows = ilppe_get()
+    # what_am_i(rows)
+
+    # db_hospis()
+
+    rows = chg()
 
 
 def main():

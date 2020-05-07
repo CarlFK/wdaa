@@ -3,6 +3,7 @@
 
 import csv
 from pprint import pprint
+from time import sleep
 
 from qwikidata.entity import WikidataItem, WikidataLexeme, WikidataProperty
 from qwikidata.linked_data_interface import get_entity_dict_from_api
@@ -11,15 +12,17 @@ from qwikidata.sparql import (get_subclasses_of_item,
                               return_sparql_query_results)
 
 
-def hospi_ll( lat, lng, radius=.5, isa=""):
+def hospi_ll( lat, lng, radius=.5, isas=[]):
 
-    if isa:
-        isa = "wdt:P31/wdt:P279* wd:{};".format(isa)
+    if isas:
+        # construct {wd:Q16917 wd:Q4287745}.
+        isas = " ".join([ "wd:"+isa for isa in isas ])
+        isas = "wdt:P31 ?kind. VALUES ?kind {{ {isas} }}.".format(isas=isas)
 
     sparql_query = """
 SELECT ?place ?placeLabel ?distance WHERE {{
-  ?place {isa}
-         wdt:P17 wd:Q30;            # In US
+  ?place wdt:P17 wd:Q30;            # In US
+  {isas}
  SERVICE wikibase:around {{
       ?place wdt:P625 ?location .
       bd:serviceParam wikibase:center"Point({lng} {lat})"^^geo:wktLiteral.
@@ -31,35 +34,41 @@ SELECT ?place ?placeLabel ?distance WHERE {{
  }}
 }}
 ORDER BY ?distance
-LIMIT 10""".format(lat=lat,lng=lng, radius=radius, isa=isa)
+LIMIT 10""".format(lat=lat,lng=lng, radius=radius, isas=isas)
 
     # print(sparql_query)
+
+    sleep(1)
 
     res = return_sparql_query_results(sparql_query)
 
     # pprint(res['results']['bindings'])
     return res
 
-    print("import sys; sys.exit()"); import code; code.interact(local=locals())
+    # print("import sys; sys.exit()"); import code; code.interact(local=locals())
 
 
-def q(word):
+def label(word, isa=""):
+
+    if isa:
+        isa = "wdt:P31/wdt:P279* wd:{};".format(isa)
 
     sparql_query = """
 SELECT ?item ?itemLabel ?itemDescription WHERE {{
+    ?item {isa}
     SERVICE wikibase:mwapi {{
       bd:serviceParam wikibase:endpoint "www.wikidata.org";
                       wikibase:api "EntitySearch";
                       mwapi:search "{word}";
                       mwapi:language "en";
-                      mwapi:limit "1".
+                      mwapi:limit "5".
       ?item wikibase:apiOutputItem mwapi:item.
       ?num wikibase:apiOrdinal true.
   }}
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
-}}""".format(word=word)
+}}""".format(word=word, isa=isa)
 
-    # print(sparql_query)
+    print(sparql_query)
 
     res = return_sparql_query_results(sparql_query)
     # pprint(res)
@@ -72,6 +81,8 @@ SELECT ?item ?itemLabel ?itemDescription WHERE {{
             label=item['itemLabel']['value'],
             description=item['itemDescription']['value'],
             uri=item['item']['value']))
+
+    return res
 
 
 def tag_qs():
@@ -107,10 +118,11 @@ def test():
     # q("Hospital")
     # q("Urgent Care Clinic")
     # q("Nursing Home")
+    res = label("Resurrection Medical Center", "Q16917")
     # tag_qs()
 
     # hospi_ll(41.89498135,-87.62153624)
-    res = hospi_ll( 41.79027035, -87.60458343, .1, "Q16917" ) # hospital)
+    # res = hospi_ll( 41.79027035, -87.60458343, .1, "Q16917" ) # hospital)
 
     for row in res['results']['bindings']:
         print(row['place']['value'])

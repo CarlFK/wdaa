@@ -67,7 +67,7 @@ def v_to_ld(values, offset=0):
             rowd = dict(zip(keys, row))
             rows.append(rowd)
 
-    return rows
+    return keys,rows
 
 
 def goog_sheet(spreadsheetId, range_name='A1:ZZ99999'):
