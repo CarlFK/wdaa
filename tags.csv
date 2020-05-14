@@ -1,16 +1,16 @@
-id,label,description
-Q16917,hospital,"health care facility (for organizations use  medical organization (Q4287745),for individual buildings use Q39364723)"
-Q210999,psychiatric hospital,"hospitals or wards specializing in the treatment of serious mental disorders"
-Q7309759,rehabilitation hospital,hospital for long-term recovery after acute medical conditions have been treated
-Q7900484,urgent care clinic,type of medical clinic
-Q837142,nursing home,type of residential care
-Q27349,dentist,healthcare occupation
-Q1195942,fire station,structure or other area set aside for storage of firefighting apparatus
-Q285852,volunteer fire department,fire department composed of volunteers
-Q1497094,emergency medical technician,healthcare provider
-Q772298,homeless shelter,temporary residence for homeless individuals and families
-Q569500,community health center,clinic, staffed by a group of general practitioners and nurses providing healthcare services to people in a certain area
-Q718966,doctor's office,general medical practice
-Q608152,hospice,organization that cares for the dying or the incurably ill
-Q5500205,free clinic,health care facility offering services to economically disadvantaged individuals for free or at a nominal cost
-Q44613,monastery,complex of buildings comprising the domestic quarters and workplace(s) of monks or nuns
+label,description,id,url
+hospital,"health care facility (for organizations use  medical organization (Q4287745),for individual buildings use Q39364723)",Q16917,https://www.wikidata.org/wiki/Q16917
+psychiatric hospital,hospitals or wards specializing in the treatment of serious mental disorders,Q210999,https://www.wikidata.org/wiki/Q210999
+rehabilitation hospital,hospital for long-term recovery after acute medical conditions have been treated,Q7309759,https://www.wikidata.org/wiki/Q7309759
+urgent care clinic,type of medical clinic,Q7900484,https://www.wikidata.org/wiki/Q7900484
+nursing home,type of residential care,Q837142,https://www.wikidata.org/wiki/Q837142
+dentist,healthcare occupation,Q27349,https://www.wikidata.org/wiki/Q27349
+fire station,structure or other area set aside for storage of firefighting apparatus,Q1195942,https://www.wikidata.org/wiki/Q1195942
+volunteer fire department,fire department composed of volunteers,Q285852,https://www.wikidata.org/wiki/Q285852
+emergency medical technician,healthcare provider,Q1497094,https://www.wikidata.org/wiki/Q1497094
+homeless shelter,temporary residence for homeless individuals and families,Q772298,https://www.wikidata.org/wiki/Q772298
+community health center,clinic staffed by a group of general practitioners and nurses providing healthcare services to people in a certain area,Q569500,https://www.wikidata.org/wiki/Q569500
+doctor's office,general medical practice,Q718966,https://www.wikidata.org/wiki/Q718966
+hospice,organization that cares for the dying or the incurably ill,Q608152,https://www.wikidata.org/wiki/Q608152
+free clinic,health care facility offering services to economically disadvantaged individuals for free or at a nominal cost,Q5500205,https://www.wikidata.org/wiki/Q5500205
+monastery,complex of buildings comprising the domestic quarters and workplace(s) of monks or nuns,Q44613,https://www.wikidata.org/wiki/Q44613
