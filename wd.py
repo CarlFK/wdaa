@@ -112,6 +112,16 @@ Post office
         print(tag)
         # q(tag)
 
+def write_tags(rows):
+
+    with open('tags.csv', 'w') as f:
+        fieldnames = ['label', 'description', 'id', 'url' ]
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for r in rows:
+            writer.writerow(r)
+
+
 def test():
     # random bits of code to test other bits of code.
 
