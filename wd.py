@@ -11,13 +11,20 @@ from qwikidata.linked_data_interface import get_entity_dict_from_api
 from qwikidata.sparql import (get_subclasses_of_item,
                               return_sparql_query_results)
 
-
-def hospi_ll( lat, lng, radius=.5, isas=[]):
-
+def mk_isas(isas):
     if isas:
         # construct {wd:Q16917 wd:Q4287745}.
         isas = " ".join([ "wd:"+isa for isa in isas ])
         isas = "wdt:P31 ?kind. VALUES ?kind {{ {isas} }}.".format(isas=isas)
+    else:
+        isas = ""
+
+    return isas
+
+
+def hospi_ll( lat, lng, radius=.5, isas=[]):
+
+    isas = mk_isas(isas)
 
     sparql_query = """
 SELECT ?place ?placeLabel ?distance WHERE {{
@@ -48,14 +55,17 @@ LIMIT 10""".format(lat=lat,lng=lng, radius=radius, isas=isas)
     # print("import sys; sys.exit()"); import code; code.interact(local=locals())
 
 
-def label(word, isa=""):
+def label(word, isas=[]):
 
-    if isa:
-        isa = "wdt:P31/wdt:P279* wd:{};".format(isa)
+    # if isa:
+    #     isa = "wdt:P31/wdt:P279* wd:{};".format(isa)
+    isas = mk_isas(isas)
+    # hack cuz I don't know what I am doing
+    if isas: isas = "?item " + isas
 
     sparql_query = """
 SELECT ?item ?itemLabel ?itemDescription WHERE {{
-    ?item {isa}
+    {isas}
     SERVICE wikibase:mwapi {{
       bd:serviceParam wikibase:endpoint "www.wikidata.org";
                       wikibase:api "EntitySearch";
@@ -66,7 +76,7 @@ SELECT ?item ?itemLabel ?itemDescription WHERE {{
       ?num wikibase:apiOrdinal true.
   }}
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
-}}""".format(word=word, isa=isa)
+}}""".format(word=word, isas=isas)
 
     print(sparql_query)
 
