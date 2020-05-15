@@ -1,6 +1,6 @@
 # wdaa.py
 # WikiData Address Adder
-# adds things with addresses, tries to avoid dupes based on lat/lng
+# adds things with addresses, tries to avoid dupes based on lat/long
 
 import re
 import urllib.parse
@@ -22,6 +22,14 @@ except ModuleNotFoundError:
     # you can't ahve my secrets, but here is a start
     from googsheet import sheets
 
+
+def goog_search(query):
+
+    goog_q = urllib.parse.quote(query)
+    url = "https://google.com/#q={}".format(goog_q)
+    return url
+
+
 def addr_fixer(addr):
 
     # print(addr)
@@ -32,18 +40,18 @@ def addr_fixer(addr):
     return d['address']
 
 
-def addr_to_latlng(addr):
+def addr_to_latlong(addr):
 
     # https://geocoder.readthedocs.io/providers/OpenStreetMap.html#osm-addresses
-    print(addr)
+    # print(addr)
 
     g = geocoder.osm(addr)
     sleep(1)
 
     j = g.json
-    latlng = j['lat'], j['lng']
+    latlong = j['lat'], j['lng']
 
-    return latlng
+    return latlong
 
 def all_addrs_to_ll( rows ):
 
@@ -61,8 +69,8 @@ def all_addrs_to_ll( rows ):
         else:
             addr = addr_fixer( row['Address'] )
 
-        latlng = addr_to_latlng( addr )
-        print(latlng)
+        latlong = addr_to_latlong( addr )
+        print(latlong)
 
 
 def c19it():
@@ -74,7 +82,7 @@ def c19it():
 
     worksheet = sh.worksheet("Requesters")
 
-    # ['Medical Center Name', 'Email Address', '', 'Region', 'Primary Contact', 'Address', 'fixed address', 'lat', 'lng', 'homepage url', 'location url', 'wikipedia url', 'Phone', 'Product Needs', 'Immediate Need - ready for order', 'How to get it to them']
+    # ['Medical Center Name', 'Email Address', '', 'Region', 'Primary Contact', 'Address', 'fixed address', 'lat', 'long', 'homepage url', 'location url', 'wikipedia url', 'Phone', 'Product Needs', 'Immediate Need - ready for order', 'How to get it to them']
 
     # keys = worksheet.get('A2:R2')[0]
     # cell.row, cell.col
@@ -84,7 +92,7 @@ def c19it():
     keys,rows = v_to_ld(values, 1)
 
     for row in rows:
-        if row['lng']:
+        if row['long']:
             continue
 
         if row['Address'] is None or len(row['Address']) == 0:
@@ -95,9 +103,9 @@ def c19it():
         else:
             addr = addr_fixer( row['Address'] )
 
-        latlng = addr_to_latlng( addr )
+        latlong = addr_to_latlong( addr )
 
-        worksheet.update('H{row}:I{row}'.format(**row), [latlng])
+        worksheet.update('H{row}:I{row}'.format(**row), [latlong])
 
 
 def ilppe_get():
@@ -148,12 +156,68 @@ def db_hospis():
 
 
 
-def chg():
-    sn = "Chicago Hospitals_Geocoded"
+def chl():
+    sn = "Chicago Hospital Location.csv"
+    ws_name = "Sheet1"
 
     gc = gspread.oauth()
     sh = gc.open(sn)
-    worksheet = sh.worksheet("Sheet1")
+    worksheet = sh.worksheet(ws_name)
+    values = worksheet.get_all_values()
+    keys,rows = v_to_ld(values, 0)
+
+    rows = [row for row in rows if not row['lat']]
+
+    # fill in lat,long
+    for row in rows:
+        print("-------\n{Hospital} - {Street Address}\n".format(**row))
+
+        full_addr = "{Street Address}, {City} IL, {Zip Code}".format(**row)
+        try:
+            latlong = addr_to_latlong( full_addr )
+            # lat,long is G,H
+            worksheet.update('G{row}:H{row}'.format(**row), [latlong])
+
+        except TypeError:
+            # print( "{Hospital}\n{Street Address}".format(**row) )
+
+            isas = ["Q16917", "Q4287745"]  # hospital,  medical organization
+            res = label(row['Hospital'], isas)
+
+            query = "{Hospital} {City}".format(**row)
+            print( goog_search(query))
+            import code; code.interact(local=locals())
+
+
+        """
+        isas = ["Q16917", "Q4287745"]  # hospital,  medical organization
+        res = hospi_ll( row['Y'], row['X'], .2, isas=isas)
+
+        for wd in res['results']['bindings']:
+            if row['FACILITY'] == wd['placeLabel']['value']:
+                print( "match: ", wd['place']['value'] )
+                break
+            else:
+                print( wd['distance']['value'],
+                    wd['placeLabel']['value'],
+                    wd['place']['value'],
+                    # wd['place']['value'].split('/')[-1]
+                    )
+        print("----------")
+        # break
+        """
+
+
+    return rows
+
+
+def chg():
+    sn = "Chicago Hospitals_Geocoded"
+    ws_name = "Sheet1"
+
+    gc = gspread.oauth()
+    sh = gc.open(sn)
+    worksheet = sh.worksheet(ws_name)
     values = worksheet.get_all_values()
     keys,rows = v_to_ld(values, 0)
 
@@ -184,7 +248,7 @@ def demo_addr():
     # addr = '1620 W. Harrison St. Chicago, IL 60612'
     # no find: "2070 N, IL-50, Suite 500, Bourbonnais, IL 60914"
     addr = "2070 N, IL-50, Bourbonnais, IL 60914"
-    ll = addr_to_latlng(addr)
+    ll = addr_to_latlong(addr)
     print(ll)
 
 
@@ -213,7 +277,7 @@ def what_am_i(rows):
 
         # isa = "Q4287745" if row['isa'] == 'hospital' else ''
         isa = "Q16917" if row['isa'] == 'hospital' else ''
-        res = hospi_ll(row['lat'], row['lng'], .5, isa )
+        res = hospi_ll(row['lat'], row['long'], .5, isa )
 
         for wd in res['results']['bindings']:
             print( "{} {} {} {}".format(
@@ -249,7 +313,8 @@ def test():
 
     # db_hospis()
 
-    rows = chg()
+    # rows = chg()
+    rows = chl()
 
 
 def main():

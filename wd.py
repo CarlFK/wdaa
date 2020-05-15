@@ -22,7 +22,7 @@ def mk_isas(isas):
     return isas
 
 
-def hospi_ll( lat, lng, radius=.5, isas=[]):
+def hospi_ll( lat, long, radius=.5, isas=[]):
 
     isas = mk_isas(isas)
 
@@ -32,7 +32,7 @@ SELECT ?place ?placeLabel ?distance WHERE {{
   {isas}
  SERVICE wikibase:around {{
       ?place wdt:P625 ?location .
-      bd:serviceParam wikibase:center"Point({lng} {lat})"^^geo:wktLiteral.
+      bd:serviceParam wikibase:center"Point({long} {lat})"^^geo:wktLiteral.
       bd:serviceParam wikibase:radius "{radius}" .
       bd:serviceParam wikibase:distance ?distance .
     }}
@@ -41,7 +41,7 @@ SELECT ?place ?placeLabel ?distance WHERE {{
  }}
 }}
 ORDER BY ?distance
-LIMIT 10""".format(lat=lat,lng=lng, radius=radius, isas=isas)
+LIMIT 10""".format(lat=lat,long=long, radius=radius, isas=isas)
 
     # print(sparql_query)
 
@@ -78,7 +78,7 @@ SELECT ?item ?itemLabel ?itemDescription WHERE {{
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
 }}""".format(word=word, isas=isas)
 
-    print(sparql_query)
+    # print(sparql_query)
 
     res = return_sparql_query_results(sparql_query)
     # pprint(res)
